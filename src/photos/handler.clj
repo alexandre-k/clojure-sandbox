@@ -22,6 +22,40 @@
               :subname "git.db"})
 
 
+(def data (walk/keywordize-keys [{"name" "Alex" "age" 32 "updated" "2018-09-03T12:29:14+00:00"} {"name" "Joe" "age" 26 "updated" "2018-09-02T14:45:38+00:00"}]))
+
+(defn parse-date [raw-date]
+  (first (str/split raw-date #"T")))
+
+(defn format-data
+  [raw-data]
+  (map #(update-in % [:updated] parse-date) raw-data))
+
+(def queries
+  [{:url "www.google.com" :fetched "2018-09-02"}
+   {:url "www.google.com" :fetched "2018-09-02"}
+   {:url "www.yahoo.com" :fetched "2018-09-01"}
+   {:url "www.facebook.com" :fetched "2018-09-01"}])
+
+
+(def grouped-queries
+  "{2018-09-02 [{:url www.google.com, :fetched 2018-09-02} {:url www.google.com, :fetched 2018-09-02}], 2018-09-01 [{:url www.yahoo.com, :fetched 2018-09-01} {:url www.facebook.com, :fetched 2018-09-01}]}"
+  (group-by :fetched queries))
+
+(defn get-urls
+  "{2018-09-02 (www.google.com www.google.com)} {2018-09-01 (www.yahoo.com www.facebook.com)})"
+  [raw-data]
+  (println (map :url (second raw-data)))
+  (hash-map (first raw-data) (map :url (second raw-data))
+            :count (count (map :url (second raw-data)))
+            ))
+
+(def urls-per-date
+ (map get-urls grouped-queries))
+
+(println urls-per-date)
+
+(println "h")
 (def sql-data
   (jdbc/query git-db (sql/select * :git)))
 
